@@ -19,17 +19,14 @@ trait ws{
 		}
 	}
 	protected function log_ws_writer($log): void{
-		$ch  = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $this['log/ws']['uri']);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-			'app'=>$this['app:uuid'],
-			'logs'=>$log,
-		], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json;charset=UTF-8"]); // 设置 header
-		curl_exec($ch);
+		$context=stream_context_create(['http'=>[
+			'method'=>'POST',
+			'header'=>["Content-Type: application/json;charset=UTF-8"],
+			'content'=>json_encode([
+				'app'=>$this['app:uuid'],
+				'logs'=>$log,
+			], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+		]]);
+		fclose(fopen($this['log/ws']['uri'], 'r', false, $context));
 	}
 }
